@@ -466,12 +466,33 @@ function fetchCrops() {
 	var season = seasons[options.season];
 
 	for (var i = 0; i < season.crops.length; i++) {
-	    if ((options.seeds.pierre && season.crops[i].seeds.pierre != 0) ||
-	    	(options.seeds.joja && season.crops[i].seeds.joja != 0) ||
-    	    (options.seeds.special && season.crops[i].seeds.specialLoc != "")) {
+		if(options.fruitTree){
+			if ((options.seeds.pierre && season.crops[i].seeds.pierre != 0 && season.crops[i].isFruitTree) ||
+	    	(options.seeds.joja && season.crops[i].seeds.joja != 0&& season.crops[i].isFruitTree) ||
+    	    (options.seeds.special && season.crops[i].seeds.specialLoc != "" && season.crops[i].isFruitTree)) {
 	    	cropList.push(JSON.parse(JSON.stringify(season.crops[i])));
 	    	cropList[cropList.length - 1].id = i;
+			}
+		} else if(!options.fruitTree){
+			if(!season.crops[i].isFruitTree){
+				if((options.seeds.pierre && season.crops[i].seeds.pierre != 0) ||
+				(options.seeds.joja && season.crops[i].seeds.joja != 0) ||
+				(options.seeds.special && season.crops[i].seeds.specialLoc != "")) {
+				cropList.push(JSON.parse(JSON.stringify(season.crops[i])));
+				cropList[cropList.length - 1].id = i;
+				}
+			}
+			
 		}
+
+
+	    // if ((options.fruitTree && season.crops[i].isFruitTree) ||
+		// 	(options.seeds.pierre && season.crops[i].seeds.pierre != 0) ||
+	    // 	(options.seeds.joja && season.crops[i].seeds.joja != 0) ||
+    	//     (options.seeds.special && season.crops[i].seeds.specialLoc != "")) {
+	    // 	cropList.push(JSON.parse(JSON.stringify(season.crops[i])));
+	    // 	cropList[cropList.length - 1].id = i;
+		// }
 	}
 }
 
@@ -1231,6 +1252,7 @@ function updateData() {
     const isGreenhouse = options.season == 4;
 
 	options.produce = parseInt(document.getElementById('select_produce').value);
+	
 
     if (options.produce == 0 || options.produce == 3) {
         document.getElementById('check_sellRaw').disabled = true;
@@ -1314,6 +1336,8 @@ function updateData() {
 	options.seeds.pierre = document.getElementById('check_seedsPierre').checked;
 	options.seeds.joja = document.getElementById('check_seedsJoja').checked;
 	options.seeds.special = document.getElementById('check_seedsSpecial').checked;
+	
+	options.fruitTree = document.getElementById('check_fruitTree').checked;
 
 	options.buySeed = document.getElementById('check_buySeed').checked;
 
@@ -1469,6 +1493,9 @@ function optionsLoad() {
 
 	options.produce = validIntRange(0, 3, options.produce);
 	document.getElementById('select_produce').value = options.produce;
+
+    options.fruitTree = validBoolean(options.fruitTree);
+    document.getElementById('check_fruitTree').checked = options.fruitTree;
 
     options.equipment = validIntRange(0, MAX_INT, options.equipment);
     document.getElementById('equipment').value = options.equipment;

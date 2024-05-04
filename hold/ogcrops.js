@@ -3,7 +3,7 @@
  */
 
 // Crop List
-var crops = {
+var ogcrops = {
   "carrot": {
     "name": "Carrot",
     "url": "https://stardewvalleywiki.com/Carrot",
@@ -26,8 +26,7 @@ var crops = {
       "price": 35,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "summersquash": {
     "name": "Summer Squash",
@@ -51,8 +50,7 @@ var crops = {
       "price": 45,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "broccoli": {
     "name": "Broccoli",
@@ -76,8 +74,7 @@ var crops = {
       "price": 70,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "powdermelon": {
     "name": "Powdermelon",
@@ -101,8 +98,7 @@ var crops = {
       "price": 70,
       "jarType": "Jelly",
       "kegType": "Wine",
-    },
-    "isFruitTree": false
+    }
   },
   "amaranth": {
     "name": "Amaranth",
@@ -126,8 +122,7 @@ var crops = {
       "price": 150,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "grape": {
     "name": "Grape",
@@ -151,8 +146,7 @@ var crops = {
       "price": 80,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "hops": {
     "name": "Hops",
@@ -177,8 +171,7 @@ var crops = {
       "keg": 300,
       "jarType": "Pickles",
       "kegType": "Pale Ale"
-    },
-    "isFruitTree": false
+    }
   },
   "pineapple": {
     "name": "Pineapple",
@@ -202,8 +195,7 @@ var crops = {
       "price": 300,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "sweetgemberry": {
     "name": "Sweet Gem Berry",
@@ -225,8 +217,7 @@ var crops = {
       "extra": 0,
       "extraPerc": 0,
       "price": 3000
-    },
-    "isFruitTree": false
+    }
   },
   "tealeaves": {
     "name": "Tea Leaves",
@@ -251,8 +242,7 @@ var crops = {
       "keg": 100,
       "jarType": "Pickles",
       "kegType": "Tea"
-    },
-    "isFruitTree": false
+    }
   },
   "fairyrose": {
     "name": "Fairy Rose",
@@ -274,8 +264,7 @@ var crops = {
       "extra": 0,
       "extraPerc": 0,
       "price": 290
-    },
-    "isFruitTree": false
+    }
   },
   "tulip": {
     "name": "Tulip",
@@ -297,8 +286,7 @@ var crops = {
       "extra": 0,
       "extraPerc": 0,
       "price": 30
-    },
-    "isFruitTree": false
+    }
   },
   "bluejazz": {
     "name": "Blue Jazz",
@@ -320,8 +308,7 @@ var crops = {
       "extra": 0,
       "extraPerc": 0,
       "price": 50
-    },
-    "isFruitTree": false
+    }
   },
   "sunflower": {
     "name": "Sunflower",
@@ -343,8 +330,7 @@ var crops = {
       "extra": 0,
       "extraPerc": 0,
       "price": 80
-    },
-    "isFruitTree": false
+    }
   },
   "coffeebean": {
     "name": "Coffee Bean",
@@ -368,8 +354,7 @@ var crops = {
       "price": 15,
       "keg": 150 / 5,
       "kegType": "Coffee"
-    },
-    "isFruitTree": false
+    }
   },
   "poppy": {
     "name": "Poppy",
@@ -391,8 +376,7 @@ var crops = {
       "extra": 0,
       "extraPerc": 0,
       "price": 140
-    },
-    "isFruitTree": false
+    }
   },
   "summerspangle": {
     "name": "Summer Spangle",
@@ -414,8 +398,7 @@ var crops = {
       "extra": 0,
       "extraPerc": 0,
       "price": 90
-    },
-    "isFruitTree": false
+    }
   },
   "parsnip": {
     "name": "Parsnip",
@@ -439,8 +422,7 @@ var crops = {
       "price": 35,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "greenbean": {
     "name": "Green Bean",
@@ -464,8 +446,7 @@ var crops = {
       "price": 40,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "cauliflower": {
     "name": "Cauliflower",
@@ -489,8 +470,7 @@ var crops = {
       "price": 175,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "potato": {
     "name": "Potato",
@@ -514,8 +494,7 @@ var crops = {
       "price": 80,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "garlic": {
     "name": "Garlic",
@@ -539,8 +518,7 @@ var crops = {
       "price": 60,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "taroroot": {
     "name": "Taro Root",
@@ -564,8 +542,7 @@ var crops = {
       "price": 100,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "kale": {
     "name": "Kale",
@@ -589,8 +566,7 @@ var crops = {
       "price": 110,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "unmilledrice": {
     "name": "Unmilled Rice",
@@ -614,8 +590,7 @@ var crops = {
       "price": 30,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "rhubarb": {
     "name": "Rhubarb",
@@ -639,8 +614,7 @@ var crops = {
       "price": 220,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "melon": {
     "name": "Melon",
@@ -664,8 +638,7 @@ var crops = {
       "price": 250,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "tomato": {
     "name": "Tomato",
@@ -689,8 +662,7 @@ var crops = {
       "price": 60,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "blueberry": {
     "name": "Blueberry",
@@ -714,8 +686,7 @@ var crops = {
       "price": 50,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "hotpepper": {
     "name": "Hot Pepper",
@@ -739,8 +710,7 @@ var crops = {
       "price": 40,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "wheat": {
     "name": "Wheat",
@@ -765,8 +735,7 @@ var crops = {
       "keg": 200,
       "jarType": "Pickles",
       "kegType": "Beer"
-    },
-    "isFruitTree": false
+    }
   },
   "radish": {
     "name": "Radish",
@@ -790,8 +759,7 @@ var crops = {
       "price": 90,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "redcabbage": {
     "name": "Red Cabbage",
@@ -815,8 +783,7 @@ var crops = {
       "price": 260,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "starfruit": {
     "name": "Starfruit",
@@ -840,8 +807,7 @@ var crops = {
       "price": 750,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "corn": {
     "name": "Corn",
@@ -865,8 +831,7 @@ var crops = {
       "price": 50,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "eggplant": {
     "name": "Eggplant",
@@ -890,8 +855,7 @@ var crops = {
       "price": 60,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "artichoke": {
     "name": "Artichoke",
@@ -915,8 +879,7 @@ var crops = {
       "price": 160,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "pumpkin": {
     "name": "Pumpkin",
@@ -940,8 +903,7 @@ var crops = {
       "price": 320,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "bokchoy": {
     "name": "Bok Choy",
@@ -965,8 +927,7 @@ var crops = {
       "price": 80,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "yam": {
     "name": "Yam",
@@ -990,8 +951,7 @@ var crops = {
       "price": 160,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "cranberries": {
     "name": "Cranberries",
@@ -1015,8 +975,7 @@ var crops = {
       "price": 75,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "beet": {
     "name": "Beet",
@@ -1040,8 +999,7 @@ var crops = {
       "price": 100,
       "jarType": "Pickles",
       "kegType": "Juice"
-    },
-    "isFruitTree": false
+    }
   },
   "ancientfruit": {
     "name": "Ancient Fruit",
@@ -1065,8 +1023,7 @@ var crops = {
       "price": 550,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "cactusfruit": {
     "name": "Cactus Fruit",
@@ -1090,8 +1047,7 @@ var crops = {
       "price": 75,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "strawberry": {
     "name": "Strawberry",
@@ -1115,8 +1071,7 @@ var crops = {
       "price": 120,
       "jarType": "Jelly",
       "kegType": "Wine"
-    },
-    "isFruitTree": false
+    }
   },
   "springseeds": {
     "name": "Spring Seeds",
@@ -1140,8 +1095,7 @@ var crops = {
       // (Wild Horseradish + Daffodil + Leek + Dandelion) / 4
       "price": (50 + 30 + 60 + 40) / 4
     },
-    "isWildseed": true,
-    "isFruitTree": false
+    "isWildseed": true
   },
   "summerseeds": {
     "name": "Summer Seeds",
@@ -1167,8 +1121,7 @@ var crops = {
       "jarType": "Jelly",
       "kegType": "Wine"
     },
-    "isWildseed": true,
-    "isFruitTree": false
+    "isWildseed": true
   },
   "fallseeds": {
     "name": "Fall Seeds",
@@ -1194,8 +1147,7 @@ var crops = {
       "jarType": "Jelly",
       "kegType": "Wine"
     },
-    "isWildseed": true,
-    "isFruitTree": false
+    "isWildseed": true
   },
   "winterseeds": {
     "name": "Winter Seeds",
@@ -1221,207 +1173,6 @@ var crops = {
       "jarType": "Jelly",
       "kegType": "Wine"
     },
-    "isWildseed": true,
-    "isFruitTree": false
-  },
-  "apple": {
-    "name": "Apple",
-    "url": "http://stardewvalleywiki.com/Apple",
-    "img": "apple.png",
-    "seeds": {
-      "sell": 1000,
-      "pierre": 4000,
-      "joja": 0,
-      "special": 3000,
-      "specialLoc": "Travelling Cart",
-      "specialUrl": "http://stardewvalleywiki.com/Travelling_Cart"
-    },
-    "growth": {
-      "initial": 28,
-      "regrow": 1
-    },
-    "produce": {
-      "extra": 0,
-      "extraPerc": 0,
-      "price": 100,
-      "jarType": "Jelly",
-      "kegType": "Wine"
-    },
-    "isFruitTree": true
-  },
-  "apricot": {
-    "name": "Apricot",
-    "url": "http://stardewvalleywiki.com/Apricot",
-    "img": "apricot.png",
-    "seeds": {
-      "sell": 500,
-      "pierre": 2000,
-      "joja": 0,
-      "special": 1500,
-      "specialLoc": "Travelling Cart",
-      "specialUrl": "http://stardewvalleywiki.com/Travelling_Cart"
-    },
-    "growth": {
-      "initial": 28,
-      "regrow": 1
-    },
-    "produce": {
-      "extra": 0,
-      "extraPerc": 0,
-      "price": 50,
-      "jarType": "Jelly",
-      "kegType": "Wine"
-    },
-    "isFruitTree": true
-  },
-  "banana": {
-    "name": "Banana",
-    "url": "http://stardewvalleywiki.com/Banana",
-    "img": "banana.png",
-    "seeds": {
-      "sell": 850,
-      "pierre": 0,
-      "joja": 0,
-      "special": 2500,
-      "specialLoc": "Island Trader",
-      "specialUrl": "http://stardewvalleywiki.com/Island_Trader"
-    },
-    "growth": {
-      "initial": 28,
-      "regrow": 1
-    },
-    "produce": {
-      "extra": 0,
-      "extraPerc": 0,
-      "price": 150,
-      "jarType": "Jelly",
-      "kegType": "Wine"
-    },
-    "isFruitTree": true
-  },
-  "cherry": {
-    "name": "Cherry",
-    "url": "http://stardewvalleywiki.com/Cherry",
-    "img": "cherry.png",
-    "seeds": {
-      "sell": 850,
-      "pierre": 3400,
-      "joja": 0,
-      "special": 2550,
-      "specialLoc": "Travelling Cart",
-      "specialUrl": "http://stardewvalleywiki.com/Travelling_Cart"
-    },
-    "growth": {
-      "initial": 28,
-      "regrow": 1
-    },
-    "produce": {
-      "extra": 0,
-      "extraPerc": 0,
-      "price": 80,
-      "jarType": "Jelly",
-      "kegType": "Wine"
-    },
-    "isFruitTree": true
-  },
-  "mango": {
-    "name": "Mango",
-    "url": "http://stardewvalleywiki.com/Mango",
-    "img": "mango.png",
-    "seeds": {
-      "sell": 850,
-      "pierre": 0,
-      "joja": 0,
-      "special": 2250,
-      "specialLoc": "Island Trader",
-      "specialUrl": "http://stardewvalleywiki.com/Island_Trader"
-    },
-    "growth": {
-      "initial": 28,
-      "regrow": 1
-    },
-    "produce": {
-      "extra": 0,
-      "extraPerc": 0,
-      "price": 130,
-      "jarType": "Jelly",
-      "kegType": "Wine"
-    },
-    "isFruitTree": true
-  },
-  "orange": {
-    "name": "Orange",
-    "url": "http://stardewvalleywiki.com/Orange",
-    "img": "orange.png",
-    "seeds": {
-      "sell": 1000,
-      "pierre": 4000,
-      "joja": 0,
-      "special": 3000,
-      "specialLoc": "Travelling Cart",
-      "specialUrl": "http://stardewvalleywiki.com/Travelling_Cart"
-    },
-    "growth": {
-      "initial": 28,
-      "regrow": 1
-    },
-    "produce": {
-      "extra": 0,
-      "extraPerc": 0,
-      "price": 100,
-      "jarType": "Jelly",
-      "kegType": "Wine"
-    },
-    "isFruitTree": true
-  },
-  "peach": {
-    "name": "Peach",
-    "url": "http://stardewvalleywiki.com/Peach",
-    "img": "peach.png",
-    "seeds": {
-      "sell": 1500,
-      "pierre": 6000,
-      "joja": 0,
-      "special": 4500,
-      "specialLoc": "Travelling Cart",
-      "specialUrl": "http://stardewvalleywiki.com/Travelling_Cart"
-    },
-    "growth": {
-      "initial": 28,
-      "regrow": 1
-    },
-    "produce": {
-      "extra": 0,
-      "extraPerc": 0,
-      "price": 140,
-      "jarType": "Jelly",
-      "kegType": "Wine"
-    },
-    "isFruitTree": true
-  },
-  "pomegranate": {
-    "name": "Pomegranate",
-    "url": "http://stardewvalleywiki.com/Pomegranate",
-    "img": "pomegranate.png",
-    "seeds": {
-      "sell": 1500,
-      "pierre": 6000,
-      "joja": 0,
-      "special": 4500,
-      "specialLoc": "Travelling Cart",
-      "specialUrl": "http://stardewvalleywiki.com/Travelling_Cart"
-    },
-    "growth": {
-      "initial": 28,
-      "regrow": 1
-    },
-    "produce": {
-      "extra": 0,
-      "extraPerc": 0,
-      "price": 140,
-      "jarType": "Jelly",
-      "kegType": "Wine"
-    },
-    "isFruitTree": true
+    "isWildseed": true
   }
 };

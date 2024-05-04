@@ -31,8 +31,7 @@ var options = {
 	},
 	"foodIndex": 0,
 	"foodLevel": 0,
-	"extra": false,
-	"fruitTree": false
+	"extra": false
 };
 
 // Different fertilizers with their stats.
@@ -103,9 +102,7 @@ var seasons = [
 			crops.tulip,
 			crops.ancientfruit,
 			crops.springseeds,
-			crops.carrot,
-			crops.apricot,
-			crops.cherry
+			crops.carrot
 		]
 	},
 	{
@@ -131,11 +128,7 @@ var seasons = [
 			crops.ancientfruit,
 			crops.taroroot,
 			crops.summerseeds,
-			crops.summersquash,
-			// crops.banana,
-			// crops.mango,
-			// crops.orange,
-			// crops.peach
+			crops.summersquash
 		]
 	},
 	{
@@ -159,9 +152,7 @@ var seasons = [
 			crops.corn,
 			crops.ancientfruit,
 			crops.fallseeds,
-			crops.broccoli,
-			// crops.pomegranate,
-			// crops.apple
+			crops.broccoli
 		]
 	},
 	{
@@ -220,16 +211,7 @@ var seasons = [
 			crops.carrot,
 			crops.summersquash,
 			crops.broccoli,
-			crops.powdermelon,
-			// crops.pomegranate,
-			// crops.banana,
-			// crops.mango,
-			// crops.orange,
-			// crops.peach,
-			// crops.carrot,
-			// crops.apricot,
-			// crops.cherry,
-			// crops.apple
+			crops.powdermelon
 		]
 	}
 ];
