@@ -165,12 +165,12 @@ function planted(crop) {
 }
 
 /*
- * Calculates the ratios of different crop ratings based on fertilizer level and player farming level
- * Math is from Crop.harvest(...) game logic
+ * Calculates the silver of different crop ratings based on fertilizer level and player farming level
+ * Math is from https://stardewvalleywiki.com/Farming#Complete_Formula_2
  *
  * @param fertilizer The level of the fertilizer (none:0, basic:1, quality:2, deluxe:3)
  * @param level The total farming skill level of the player
- * @return Object containing ratios of iridium, gold, silver, and unrated crops liklihood
+ * @return Object containing silver of iridium, gold, silver, and unrated crops likelihood
  */
 function levelRatio(fertilizer, level, isWildseed) {
 	var ratio = {};
@@ -178,26 +178,25 @@ function levelRatio(fertilizer, level, isWildseed) {
     if (isWildseed) {
 		// All wild crops are iridium if botanist is selected
 		if  (options.skills.botanist)
-        	ratio.ratioI = 1;
+        	ratio.iridium = 1;
 		else
-			ratio.ratioI = 0;
+			ratio.iridium = 0;
 		// Gold foraging is at a rate of foraging level/30 (and not iridium)
-		ratio.ratioG = level/30.0*(1-ratio.ratioI);
+		ratio.gold = level/30.0*(1-ratio.iridium);
 		// Silver is at a rate of foraging level/15 (and not gold or iridium)
-		ratio.ratioS = level/15.0*(1-ratio.ratioG-ratio.ratioI);
+		ratio.silver = level/15.0*(1-ratio.gold-ratio.iridium);
 		// Normal is the remaining rate
-		ratio.ratioN = 1-ratio.ratioS-ratio.ratioG-ratio.ratioI;
+		ratio.regular = 1-ratio.silver-ratio.gold-ratio.iridium;
 	}
     else
 	{
-		// Iridium is available on deluxe fertilizer at 1/2 gold ratio
-    	ratio.ratioI = fertilizer >= 3 ? (0.2*(level/10.0)+0.2*fertilizer*((level+2)/12.0)+0.01)/2 : 0;
-		// Calculate gold times probability of not iridium
-		ratio.ratioG = (0.2*(level/10.0)+0.2*fertilizer*((level+2)/12.0)+0.01)*(1.0-ratio.ratioI);
-		// Probability of silver capped at .75, times probability of not gold/iridium
-		ratio.ratioS = Math.max(0,Math.min(0.75,ratio.ratioG*2.0)*(1.0-ratio.ratioG-ratio.ratioI));
-		// Probability of not the other ratings
-		ratio.ratioN = Math.max(0, 1.0 - ratio.ratioS - ratio.ratioG - ratio.ratioI);
+		ratio.gold 		= 0.2 * (level / 10) + 0.2 * fertilizer * ((level + 2) / 12) + 0.01;
+		//Technically silver has 2 probability variants. The second equation: 2 * chance for gold quality
+		//stands true globally till the probability of gold is chosen, then the silver equation changes globally to
+		//(1 - chance for gold quality) * (minimum between (0.75) and (2 * chance for gold quality))
+		ratio.silver 	= (1-ratio.gold)*(Math.min(.75,2*ratio.gold));
+		ratio.iridium 	= (fertilizer >= 3 ) ? ratio.gold / 2 : 0;
+		ratio.regular 	= (fertilizer < 3 ) ? 1 - (ratio.silver + ratio.gold) : 0;
 	}
 	return ratio;
 }
@@ -242,12 +241,16 @@ function profit(crop) {
     if (crop.isWildseed)
         useLevel = options.foragingLevel;
 
-	var {ratioN, ratioS, ratioG, ratioI} = levelRatio(fertilizer.ratio, useLevel+options.foodLevel, crop.isWildseed);
+	//Fertilizer Quality
+	var {regular, silver, gold, iridium} = levelRatio(fertilizer.ratio, useLevel+options.foodLevel, crop.isWildseed);
         
-	if (isTea) ratioN = 1, ratioS = ratioG = ratioI = 0;
+	if (isTea) regular = 1, silver = gold = iridium = 0;
 	var netIncome = 0;
+	var maxNetIncome = 0;
 	var netExpenses = 0;
 	var totalProfit = 0;
+	var maxTotalProfit = 0;
+	var predNetIncome = 0;
 	var totalReturnOnInvestment = 0;
 	var averageReturnOnInvestment = 0;
 	
@@ -264,6 +267,7 @@ function profit(crop) {
 			break;
 	}
 	
+	//Check This
     var total_harvest = num_planted * 1.0 + num_planted * crop.produce.extraPerc * crop.produce.extra;
 	var forSeeds = 0;
 	if (options.replant && !isTea) {
@@ -289,10 +293,76 @@ function profit(crop) {
             netIncome = 0;
         }
         else {
-            var countN = total_crops * ratioN;
-            var countS = total_crops * ratioS;
-            var countG = total_crops * ratioG;
-            var countI = total_crops * ratioI;
+            var countN = Math.round(total_crops * regular);
+            var countS = Math.round(total_crops * silver);
+            var countG = Math.round(total_crops * gold);
+            var countI = Math.round(total_crops * iridium);
+
+            var countRegular = 0
+            var countSilver = 0
+            var countGold = 0
+            var countIridium = 0
+			//Probability of Quality
+			// See Complete Formula here: https://stardewvalleywiki.com/Farming#Complete_Formula_2
+			// Generate a random number between 0 and 1.
+			
+			//Quality is determined at harvest
+			//For crops that produce multiples at harvest, fertilizers affect only the first crop produced
+			for (let i = 0; i < total_crops; i++ ){
+				var randomNumber = Math.random();
+				if (iridium > 0){
+					if(randomNumber < iridium ){
+						//do something
+						countIridium++
+					}
+					else if (randomNumber < gold ){
+						//true gold is picked
+						countGold++
+					} 
+					else {
+						//false silver is the default if iridium is achievable.
+						countSilver++
+					
+					}
+				//fertilizer is below deluxe
+				} else {
+					if (randomNumber < gold ){
+						//true gold is picked
+						countGold++
+					} 
+					else if (randomNumber < silver ){
+						//false silver picked
+						countSilver++
+					
+					} else{
+						//Regular Picked
+						countRegular++
+					}
+				}
+			}
+
+            predNetIncome += crop.produce.price * countRegular;
+            predNetIncome += Math.trunc(crop.produce.price * 1.25) * countSilver;
+            predNetIncome += Math.trunc(crop.produce.price * 1.5) * countGold;
+            predNetIncome += crop.produce.price * 2 * countIridium;
+			
+			crop.produce.regular = countRegular
+			crop.produce.silver = countSilver
+			crop.produce.gold = countGold
+			crop.produce.iridium = countIridium
+			crop.produce.predNetIncome = predNetIncome
+
+			if (iridium > 0){
+				//min is always silver, max is always iridium
+				netIncome = Math.trunc(crop.produce.price * 1.25) * total_crops;
+				maxNetIncome = crop.produce.price * 2 * total_crops;
+			} else {
+				//min is always regular, max is always gold
+				netIncome += crop.produce.price * total_crops;
+				maxNetIncome += Math.trunc(crop.produce.price * 1.5) * total_crops;
+			}
+
+			//come back to this
             if (options.replant) {
                 if (countN - forSeeds < 0) {
                     forSeeds -= countN;
@@ -327,13 +397,10 @@ function profit(crop) {
                     forSeeds = 0;
                 }
             }
-            netIncome += crop.produce.price * countN;
-            netIncome += Math.trunc(crop.produce.price * 1.25) * countS;
-            netIncome += Math.trunc(crop.produce.price * 1.5) * countG;
-            netIncome += crop.produce.price * 2 * countI;
 
             if (options.skills.till) {
                 netIncome *= 1.1;
+				maxNetIncome *= 1.1
                 // console.log("Profit (After skills): " + profit);
             }
         }
@@ -360,7 +427,7 @@ function profit(crop) {
 			items = items - forSeeds + excesseProduce; //use unused produce for seeds
 		
 		if(items < 0) 
-			items = 0; //because ancient fruit may not yield any produce resulting in negativ profit
+			items = 0; //because ancient fruit may not yield any produce resulting in negative profit
 		
 
         if (options.produce == 1)
@@ -386,8 +453,12 @@ function profit(crop) {
 
 	// Determine total profit
 	totalProfit = netIncome + netExpenses;
+	maxTotalProfit = maxNetIncome + netExpenses;
 	if (netExpenses != 0) {
 		totalReturnOnInvestment = 100 * ((totalProfit) / -netExpenses); // Calculate the return on investment and scale it to a % increase
+
+		//Calculate return on investment for each day produce grew 
+		//LEFT OFF HERE
 		if (crop.growth.regrow == 0) {
 			averageReturnOnInvestment = (totalReturnOnInvestment / crop.growth.initial);
 		}
@@ -405,10 +476,11 @@ function profit(crop) {
 	profitData.averageReturnOnInvestment = averageReturnOnInvestment;
 	profitData.netExpenses = netExpenses;
     profitData.profit = totalProfit;
-    profitData.ratioN = ratioN;
-    profitData.ratioS = ratioS;
-    profitData.ratioG = ratioG;
-    profitData.ratioI = ratioI;
+    profitData.maxProfit = maxTotalProfit;
+    profitData.regular = regular;
+    profitData.silver = silver;
+    profitData.gold = gold;
+    profitData.iridium = iridium;
 
 	// console.log("Profit: " + profit);
 	return profitData;
@@ -449,12 +521,28 @@ function fertLoss(crop) {
 }
 
 /*
- * Converts any value to the average per day value.
+ * Converts any value to the average per day value based on total number produce grows for.
  * @param value The value to convert.
  * @return Value per day.
  */
-function perDay(value) {
-	return value / options.days;
+function perDay(crop,choice) {
+	//Growing Days = Days to Mature + ((Harvest Per Season -1 ) * Days to ReGrow)
+	//Value Per Day = ((Harvest Per Season * Sell Price) -Seed Price) /Growing Days
+
+	var growingDays =  crop.growth.initial + ((crop.harvests - 1) * crop.growth.regrow)
+	var value = 0
+	switch (choice) {
+		case 0:	 //Profit by Day
+			value = (options.buySeed) ? ((crop.harvests * crop.produce.price ) - -crop.seedLoss) / growingDays :(crop.harvests * crop.produce.price ) / growingDays;
+			break;
+		case 1: //Seed Loss by Day
+			value = -crop.seedLoss / growingDays;
+			break;
+		case 2: // Fertilize Loss by Day
+			value = -crop.fertLoss / growingDays;
+			break;
+	}
+	return value;
 }
 
 /*
@@ -490,20 +578,24 @@ function valueCrops() {
 		cropList[i].fertLoss = fertLoss(cropList[i]);
 		cropList[i].profitData = profit(cropList[i]);
         cropList[i].profit = cropList[i].profitData.profit;
+        cropList[i].minProfit = cropList[i].profitData.minProfit;
+        cropList[i].maxProfit = cropList[i].profitData.maxProfit;
 		cropList[i].totalReturnOnInvestment = cropList[i].profitData.totalReturnOnInvestment;
 		cropList[i].averageReturnOnInvestment = cropList[i].profitData.averageReturnOnInvestment;
 		cropList[i].netExpenses = cropList[i].profitData.netExpenses;
-		cropList[i].averageProfit = perDay(cropList[i].profit);
-		cropList[i].averageSeedLoss = perDay(cropList[i].seedLoss);
-		cropList[i].averageFertLoss = perDay(cropList[i].fertLoss);
+		cropList[i].averageProfit = perDay(cropList[i],0); //profit
+		cropList[i].averageSeedLoss = perDay(cropList[i],1); //seedLoss
+		cropList[i].averageFertLoss = perDay(cropList[i],2); //fertLoss
 
 		if (options.average == 1) {
+			//Daily Profit
 			cropList[i].drawProfit = cropList[i].averageProfit;
 			cropList[i].drawSeedLoss = cropList[i].averageSeedLoss;
 			cropList[i].drawFertLoss = cropList[i].averageFertLoss;
 			graphDescription = "Daily Profit"
 		}
 		else if ((options.average == 2) ){
+			//Total ROI
 			if (options.buySeed || (options.buyFert && fertilizers[options.fertilizer].cost > 0)) {
 				cropList[i].drawProfit = cropList[i].totalReturnOnInvestment;
 				graphDescription = "Total Return On Investment";
@@ -516,6 +608,7 @@ function valueCrops() {
 			cropList[i].drawFertLoss = cropList[i].fertLoss;
 		}
 		else if (options.average == 3) {
+			//Daily ROI
 			cropList[i].drawSeedLoss = cropList[i].averageSeedLoss;
 			cropList[i].drawFertLoss = cropList[i].averageFertLoss;
 			if (options.buySeed || (options.buyFert && fertilizers[options.fertilizer].cost > 0)) {
@@ -528,6 +621,7 @@ function valueCrops() {
 			}
 		}
 		else {
+			//Total Profit
 			cropList[i].drawProfit = cropList[i].profit;
 			cropList[i].drawSeedLoss = cropList[i].seedLoss;
 			cropList[i].drawFertLoss = cropList[i].fertLoss;
@@ -817,18 +911,63 @@ function renderGraph() {
 				tooltip.selectAll("*").remove();
 				tooltip.style("visibility", "visible");
 
-				tooltip.append("h3").attr("class", "tooltipTitle").text(d.name);
+				tooltip.append("h2").attr("class", "tooltipTitle").text(d.name);
+				var sortText ="";
+				switch (options.average) {
+					case 0: sortText = "Total Profit: " + formatNumber(d.drawProfit); break;
+					case 1: sortText = "Daily Profit: "	+ formatNumber(d.drawProfit); break;
+					case 2: sortText = "Total ROI: "	+ formatNumber(d.drawProfit) + "%"; break;
+					case 3: sortText = "Daily ROI: "	+ formatNumber(d.drawProfit) + "%"; break;
+				}
+				// tooltip.append("h4").attr("class", "tooltipTitle").text(d.drawProfit);
+				tooltip.append("h4").attr("class", "tooltipThCenter").text(sortText);
 
 				var tooltipTable = tooltip.append("table")
 					.attr("class", "tooltipTable")
 					.attr("cellspacing", 0);
 				var tooltipTr;
 
+				//TEST
+				// headers
+				// tooltipTr = tooltipTable.append("thead").append("tr");
+				// tooltipTr.append("th").attr("class", "tooltipThCenter").attr("colspan","2").text("Min Profit");
+				// tooltipTr.append("th").attr("class", "tooltipThCenter").attr("colspan","2").text("Max Profit");
 
+				// //body
+				// tooltipBody = tooltipTable.append("tbody")
+				// //Row 1
+				// tooltipBodyTR = tooltipBody.append("tr")
+				// tooltipBodyTR.append("td").attr("class", "tooltipTdLeft").text("Total");
+
+				// if (d.minProfit > 0)
+				// 	tooltipBodyTR.append("td").attr("class", "tooltipTdRightPos toolAlignRight").text(formatNumber(d.minProfit)).append("div").attr("class", "gold");
+				// else
+				// 	tooltipBodyTR.append("td").attr("class", "tooltipTdRightNeg toolAlignRight").text(formatNumber(d.minProfit)).append("div").attr("class", "gold");
+				
+				// tooltipBodyTR.append("td").attr("class", "tooltipTdLeft").text("Total");
+
+				// if (d.maxProfit > 0)
+				// 	tooltipBodyTR.append("td").attr("class", "tooltipTdRightPos toolAlignRight").text(formatNumber(d.maxProfit)).append("div").attr("class", "gold");
+				// else
+				// 	tooltipBodyTR.append("td").attr("class", "tooltipTdRightNeg toolAlignRight").text(formatNumber(d.maxProfit)).append("div").attr("class", "gold");
+				// // tooltipBodyTR.append("td").attr("class", "tooltipTdRightPos toolAlignRight").text(formatNumber(d.maxProfit)).append("div").attr("class", "gold");
+
+				// //Row 2
+				// tooltipBodyTR = tooltipTable.append("tr")
+				// tooltipBodyTR.append("td").attr("class", "tooltipTdLeft").text("Per Day");
+				// tooltipBodyTR.append("td").attr("class", "tooltipTdRightPos toolAlignRight").text(formatNumber(d.averageProfit)).append("div").attr("class", "gold");
+				// tooltipBodyTR.append("td").attr("class", "tooltipTdLeft").text("Per Day");
+				// tooltipBodyTR.append("td").attr("class", "tooltipTdRightPos toolAlignRight").text(formatNumber(d.averageProfit)).append("div").attr("class", "gold");
+
+
+				//----------
+
+
+				//CHANGE THIS
 				tooltipTr = tooltipTable.append("tr");
 				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Total profit:");
 				if (d.profit > 0)
-					tooltipTr.append("td").attr("class", "tooltipTdRightPos").text("+" + formatNumber(d.profit))
+					tooltipTr.append("td").attr("class", "tooltipTdRightPos").text(formatNumber(d.profit))
 						.append("div").attr("class", "gold");
 				else
 					tooltipTr.append("td").attr("class", "tooltipTdRightNeg").text(formatNumber(d.profit))
@@ -929,16 +1068,18 @@ function renderGraph() {
                         initialGrow += Math.floor(d.growth.initial * fertilizer.growth);
 
 					tooltip.append("h3").attr("class", "tooltipTitleExtra").text("Crop info");
+					tooltip.append("h4").attr("class", "tooltipThCenter").text("Predicted Total Sale: " + d.produce.predNetIncome); //COME BACK TO THIS
 					tooltipTable = tooltip.append("table")
 						.attr("class", "tooltipTable")
 						.attr("cellspacing", 0);
+
 
                     if (!(d.isWildseed && options.skills.botanist)) {
     					tooltipTr = tooltipTable.append("tr");
     					tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Value (Normal):");
     					tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.produce.price)
     						.append("div").attr("class", "gold");
-                        tooltipTr.append("td").attr("class", "tooltipTdRight").text("(" + (d.profitData.ratioN*100).toFixed(0) + "%)");
+                        tooltipTr.append("td").attr("class", "tooltipTdRight").text(" "+ d.produce.regular + " (" + (d.profitData.regular*100).toFixed(0) + "%)");
                     }
 					if (d.name != "Tea Leaves") {
                         if (!(d.isWildseed && options.skills.botanist)) {
@@ -946,19 +1087,19 @@ function renderGraph() {
     						tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Value (Silver):");
     						tooltipTr.append("td").attr("class", "tooltipTdRight").text(Math.trunc(d.produce.price * 1.25))
     							.append("div").attr("class", "gold");
-                            tooltipTr.append("td").attr("class", "tooltipTdRight").text("(" + (d.profitData.ratioS*100).toFixed(0) + "%)");
+                            tooltipTr.append("td").attr("class", "tooltipTdRight").text(" "+ d.produce.silver + " (" + (d.profitData.silver*100).toFixed(0) + "%)");
     						tooltipTr = tooltipTable.append("tr");
     						tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Value (Gold):");
     						tooltipTr.append("td").attr("class", "tooltipTdRight").text(Math.trunc(d.produce.price * 1.5))
     							.append("div").attr("class", "gold");
-                            tooltipTr.append("td").attr("class", "tooltipTdRight").text("(" + (d.profitData.ratioG*100).toFixed(0) + "%)");
+                            tooltipTr.append("td").attr("class", "tooltipTdRight").text(" "+ d.produce.gold + " (" + (d.profitData.gold*100).toFixed(0) + "%)");
                         }
                         if ((!d.isWildseed && fertilizers[options.fertilizer].ratio >= 3) || (d.isWildseed && options.skills.botanist)) {
     						tooltipTr = tooltipTable.append("tr");
     						tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Value (Iridium):");
     						tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.produce.price * 2)
     							.append("div").attr("class", "gold");
-                            tooltipTr.append("td").attr("class", "tooltipTdRight").text("(" + (d.profitData.ratioI*100).toFixed(0) + "%)");
+                            tooltipTr.append("td").attr("class", "tooltipTdRight").text(" "+ d.produce.iridium + " (" + (d.profitData.iridium*100).toFixed(0) + "%)");
                         }
 					}
 					tooltipTr = tooltipTable.append("tr");
@@ -1161,6 +1302,7 @@ function updateGraph() {
 		    .attr('width', barWidth)
 		    .attr('height', barWidth)
 		    .attr("xlink:href", function(d) { return "img/" + d.img; });
+			// .on("click", function(d) { window.open(d.url, "_blank"); });
 
 	barsTooltips.data(cropList)
 		.transition()
@@ -1332,6 +1474,7 @@ function updateData() {
 
     if (document.getElementById('number_planted').value <= 0)
         document.getElementById('number_planted').value = 1;
+	//Better to explain in UI that this will update the number of crops to an even number!
     if (options.replant && parseInt(document.getElementById('number_planted').value) % 2 == 1)
         document.getElementById('number_planted').value = parseInt(document.getElementById('number_planted').value) + 1;
     options.planted = document.getElementById('number_planted').value;

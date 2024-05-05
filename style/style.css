@@ -187,6 +187,26 @@ input[type=checkbox] {
 	padding: 4px 8px 4px 8px;
 }
 
+.tooltipThCenter {
+	font: 0.875em sans-serif;
+	color: #eeeeee;
+	padding: 1px 4px 0px 4px;
+	margin-bottom: 1px;
+    vertical-align: bottom;
+	border-collapse:collapse;
+
+	font-weight:bold;
+	text-align:center;
+	background-color:#444644;
+	border-color:#232423;
+	border-style:solid;
+	border-width:1px;
+}
+
+.toolAlignRight{
+	text-align: right;
+}
+
 .tooltipTdLeft {
 	font: 0.875em sans-serif;
 	color: #eeeeee;
