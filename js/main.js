@@ -1525,7 +1525,7 @@ function updateData() {
 	}
 
     if (document.getElementById('foraging_level').value <= 0)
-        document.getElementById('foraging_level').value = 1;
+        document.getElementById('foraging_level').value = 0;
     if (document.getElementById('foraging_level').value > 13)
         document.getElementById('foraging_level').value = 13;
     options.foragingLevel = parseInt(document.getElementById('foraging_level').value);
