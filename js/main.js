@@ -165,66 +165,6 @@ function planted(crop) {
 }
 
 /*
- * Calculates the silver of different crop ratings based on fertilizer level and player farming level
- * Math is from https://stardewvalleywiki.com/Farming#Complete_Formula_2
- *
- * @param fertilizer The level of the fertilizer (none:0, basic:1, quality:2, deluxe:3)
- * @param level The total farming skill level of the player
- * @return Object containing silver of iridium, gold, silver, and unrated crops likelihood
- */
-function levelRatio(fertilizer, level, isWildseed) {
-	var ratio = {};
-
-	//Come back to this
-    if (isWildseed) {
-		// All wild crops are iridium if botanist is selected
-		if  (options.skills.botanist)
-        	ratio.iridium = 1;
-		else
-			ratio.iridium = 0;
-		// Gold foraging is at a rate of foraging level/30 (and not iridium)
-		ratio.gold = level/30.0*(1-ratio.iridium);
-		// Silver is at a rate of foraging level/15 (and not gold or iridium)
-		ratio.silver = level/15.0*(1-ratio.gold-ratio.iridium);
-		// Normal is the remaining rate
-		ratio.regular = 1-ratio.silver-ratio.gold-ratio.iridium;
-	}
-    else
-	{
-		/* Probability any given crop quality will be chosen.
-		* If fertilizer = deluxe. 
-		* Iridium probability is calculated (calculated gold/2). 
-		* Gold is then the probability that both events Iridium will NOT and Gold WILL occur. 
-		* 	IE (calculated iridium not to occur * Calculated Gold). 
-		* Finally silver's is the probability that both events Iridium and Gold will NOT occur. 
-		*	IE: (Calculated Iridium not to occur * Calculated Gold not to occur). 
-		*/
-		ratio.gold 		= 0.2 * (level / 10) + 0.2 * fertilizer * ((level + 2) / 12) + 0.01;
-		ratio.goldNot	= 1 - ratio.gold
-
-		ratio.iridium 	= (fertilizer >= 3 ) ? ratio.gold / 2 : 0; //is also iridiumP
-		ratio.iridiumNot = 1 - ratio.iridium
-
-		ratio.goldP		= (fertilizer >= 3) ? ratio.iridiumNot * ratio.gold: ratio.gold;
-
-		ratio.silver 	= Math.min(.75,2*ratio.gold);
-		ratio.silverNot	= 1 - ratio.silver;
-		ratio.silverP	= ratio.goldNot * ratio.silver;
-		if(fertilizer >= 3){
-			if(ratio.goldNot * ratio.iridiumNot < 0){
-				ratio.silverP = 0
-			} else {
-				ratio.silverP = ratio.goldNot * ratio.iridiumNot
-			}
-		}
-
-		//If Not Deluxe = GoldNot * SilverNot, else 0
-		ratio.regular 	= (fertilizer < 3 ) ? ratio.goldNot * ratio.silverNot : 0; //is also regularP
-	}
-	return ratio;
-}
-
-/*
  * Calculates the keg modifier for the crop.
  * @param crop The crop object, containing all the crop data.
  * @return The keg modifier.
@@ -260,13 +200,9 @@ function profit(crop) {
 	var isTea = crop.name == "Tea Leaves";
 	var isCoffee = crop.name == "Coffee Bean";
 
-    var useLevel = options.level;
-    if (crop.isWildseed)
-        useLevel = options.foragingLevel;
+	const useLevel = options.level;
+	const probability = (crop.isWildseed) ? PredictForaging(options.foragingLevel,options.skills.botanist) : Probability(useLevel+options.foodLevel,fertilizer.ratio);
 
-	//Fertilizer Quality
-	var {regular, silver, gold, iridium, silverP, goldP} = levelRatio(fertilizer.ratio, useLevel+options.foodLevel, crop.isWildseed);
-	var fertilizerQualityLevel = fertilizer.ratio
 
 	if (isTea) regular = 1, silver = gold = iridium = 0;
 	var netIncome = 0;
@@ -317,10 +253,10 @@ function profit(crop) {
             netIncome = 0;
         }
         else {
-            var countN = Math.round(total_crops * regular);
-            var countS = Math.round(total_crops * silver);
-            var countG = Math.round(total_crops * gold);
-            var countI = Math.round(total_crops * iridium);
+            var countN = Math.round(total_crops * probability.regular);
+            var countS = Math.round(total_crops * probability.silver);
+            var countG = Math.round(total_crops * probability.gold);
+            var countI = Math.round(total_crops * probability.iridium);
 
             var countRegular = 0
             var countSilver = 0
@@ -333,24 +269,21 @@ function profit(crop) {
 			//Quality is determined at harvest
 			//For crops that produce multiples at harvest, fertilizers affect only the first crop produced
 			for (let i = 0; i < total_crops; i++ ){
-				//Note in C# you can easily refresh random with NextDouble(), rather in js I'll reassign each crop.
-				var r2 = Math.random();
+				const predicted = (crop.isWildseed) ? PredictForaging(options.foragingLevel,options.skills.botanist) : Predict(useLevel+options.foodLevel,fertilizer.ratio);
 				
-				if (fertilizerQualityLevel >= 3 && r2 < iridium){
-					//iridium
-					countIridium++
-				}
-				else if (r2 < gold){
-					//Gold
-					countGold++
-				}
-				else if (r2 < silver || fertilizerQualityLevel >= 3){
-					//Silver
-					countSilver++
-				}
-				else {
-					//Regular
-					countRegular++
+				switch(predicted.cropQuality){
+					case 4:
+						countIridium++
+						break;
+					case 2:
+						countGold++
+						break;
+					case 1:
+						countSilver++
+						break;
+					default:
+						countRegular++
+						break;
 				}
 			}
 
@@ -366,7 +299,7 @@ function profit(crop) {
 			crop.produce.predNetIncome = predNetIncome
 
 			//Apply quality to min/max profit (non predictive) value
-			if (iridium > 0){
+			if (probability.iridium > 0){
 				//min is always silver, max is always iridium
 				netIncome += Math.trunc(crop.produce.price * 1.25) * total_crops;
 				maxNetIncome += crop.produce.price * 2 * total_crops;
@@ -415,7 +348,6 @@ function profit(crop) {
             if (options.skills.till) {
                 netIncome *= 1.1;
 				maxNetIncome *= 1.1
-                // console.log("Profit (After skills): " + profit);
             }
         }
 	}
@@ -457,12 +389,10 @@ function profit(crop) {
 	// Determine expenses
 	if (options.buySeed) {
 		netExpenses += crop.seedLoss;
-		// console.log("Profit (After seeds): " + profit);
 	}
 
 	if (options.buyFert) {
 		netExpenses += crop.fertLoss;
-		// console.log("Profit (After fertilizer): " + profit);
 	}
 
 	// Determine total profit
@@ -490,17 +420,15 @@ function profit(crop) {
 	profitData.totalReturnOnInvestment = totalReturnOnInvestment;
 	profitData.averageReturnOnInvestment = averageReturnOnInvestment;
 	profitData.netExpenses = netExpenses;
-	//Isn't taking expenses out
     profitData.profit = totalProfit;
     profitData.maxProfit = maxTotalProfit;
 	profitData.predTotalProfit = predTotalProfit
 
-    profitData.regular = regular;
-    profitData.silver = silverP;
-    profitData.gold = goldP;
-    profitData.iridium = iridium;
+    profitData.regular = probability.regular;
+    profitData.silver = probability.silver;
+    profitData.gold = probability.gold;
+    profitData.iridium = probability.iridium;
 
-	// console.log("Profit: " + profit);
 	return profitData;
 }
 
@@ -595,9 +523,6 @@ function valueCrops() {
 		cropList[i].seedLoss = seedLoss(cropList[i]);
 		cropList[i].fertLoss = fertLoss(cropList[i]);
 		cropList[i].profitData = profit(cropList[i]);
-        cropList[i].profit = cropList[i].profitData.profit;
-        cropList[i].minProfit = cropList[i].profitData.minProfit;
-        cropList[i].maxProfit = cropList[i].profitData.maxProfit;
 		cropList[i].totalReturnOnInvestment = cropList[i].profitData.totalReturnOnInvestment;
 		cropList[i].averageReturnOnInvestment = cropList[i].profitData.averageReturnOnInvestment;
 		cropList[i].netExpenses = cropList[i].profitData.netExpenses;
@@ -640,7 +565,7 @@ function valueCrops() {
 		}
 		else {
 			//Total Profit
-			cropList[i].drawProfit = cropList[i].profit;
+			cropList[i].drawProfit = cropList[i].profitData.profit;
 			cropList[i].drawSeedLoss = cropList[i].seedLoss;
 			cropList[i].drawFertLoss = cropList[i].fertLoss;
 			graphDescription = "Total Profit";
@@ -984,11 +909,11 @@ function renderGraph() {
 				//CHANGE THIS
 				tooltipTr = tooltipTable.append("tr");
 				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Total profit:");
-				if (d.profit > 0)
-					tooltipTr.append("td").attr("class", "tooltipTdRightPos").text(formatNumber(d.profit))
+				if (d.profitData.profit > 0)
+					tooltipTr.append("td").attr("class", "tooltipTdRightPos").text(formatNumber(d.profitData.profit))
 						.append("div").attr("class", "gold");
 				else
-					tooltipTr.append("td").attr("class", "tooltipTdRightNeg").text(formatNumber(d.profit))
+					tooltipTr.append("td").attr("class", "tooltipTdRightNeg").text(formatNumber(d.profitData.profit))
 						.append("div").attr("class", "gold");
 
 				tooltipTr = tooltipTable.append("tr");

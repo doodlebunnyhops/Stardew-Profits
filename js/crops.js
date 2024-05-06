@@ -1078,7 +1078,7 @@ var crops = {
     "url": "http://stardewvalleywiki.com/Spring_Seeds",
     "img": "springseeds.png",
     "seeds": {
-      "sell": 0,
+      "sell": 35,
       "pierre": 0,
       "joja": 0,
       "special": 1000,
@@ -1102,7 +1102,7 @@ var crops = {
     "url": "http://stardewvalleywiki.com/Summer_Seeds",
     "img": "summerseeds.png",
     "seeds": {
-      "sell": 0,
+      "sell": 55,
       "pierre": 0,
       "joja": 0,
       "special": 1000,
@@ -1128,7 +1128,7 @@ var crops = {
     "url": "http://stardewvalleywiki.com/Fall_Seeds",
     "img": "fallseeds.png",
     "seeds": {
-      "sell": 0,
+      "sell": 45,
       "pierre": 0,
       "joja": 0,
       "special": 1000,
@@ -1154,7 +1154,7 @@ var crops = {
     "url": "http://stardewvalleywiki.com/Winter_Seeds",
     "img": "winterseeds.png",
     "seeds": {
-      "sell": 0,
+      "sell": 30,
       "pierre": 0,
       "joja": 0,
       "special": 1000,
