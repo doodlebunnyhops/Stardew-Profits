@@ -175,6 +175,7 @@ function planted(crop) {
 function levelRatio(fertilizer, level, isWildseed) {
 	var ratio = {};
 
+	//Come back to this
     if (isWildseed) {
 		// All wild crops are iridium if botanist is selected
 		if  (options.skills.botanist)
@@ -190,13 +191,35 @@ function levelRatio(fertilizer, level, isWildseed) {
 	}
     else
 	{
+		/* Probability any given crop quality will be chosen.
+		* If fertilizer = deluxe. 
+		* Iridium probability is calculated (calculated gold/2). 
+		* Gold is then the probability that both events Iridium will NOT and Gold WILL occur. 
+		* 	IE (calculated iridium not to occur * Calculated Gold). 
+		* Finally silver's is the probability that both events Iridium and Gold will NOT occur. 
+		*	IE: (Calculated Iridium not to occur * Calculated Gold not to occur). 
+		*/
 		ratio.gold 		= 0.2 * (level / 10) + 0.2 * fertilizer * ((level + 2) / 12) + 0.01;
-		//Technically silver has 2 probability variants. The second equation: 2 * chance for gold quality
-		//stands true globally till the probability of gold is chosen, then the silver equation changes globally to
-		//(1 - chance for gold quality) * (minimum between (0.75) and (2 * chance for gold quality))
-		ratio.silver 	= (1-ratio.gold)*(Math.min(.75,2*ratio.gold));
-		ratio.iridium 	= (fertilizer >= 3 ) ? ratio.gold / 2 : 0;
-		ratio.regular 	= (fertilizer < 3 ) ? 1 - (ratio.silver + ratio.gold) : 0;
+		ratio.goldNot	= 1 - ratio.gold
+
+		ratio.iridium 	= (fertilizer >= 3 ) ? ratio.gold / 2 : 0; //is also iridiumP
+		ratio.iridiumNot = 1 - ratio.iridium
+
+		ratio.goldP		= (fertilizer >= 3) ? ratio.iridiumNot * ratio.gold: ratio.gold;
+
+		ratio.silver 	= Math.min(.75,2*ratio.gold);
+		ratio.silverNot	= 1 - ratio.silver;
+		ratio.silverP	= ratio.goldNot * ratio.silver;
+		if(fertilizer >= 3){
+			if(ratio.goldNot * ratio.iridiumNot < 0){
+				ratio.silverP = 0
+			} else {
+				ratio.silverP = ratio.goldNot * ratio.iridiumNot
+			}
+		}
+
+		//If Not Deluxe = GoldNot * SilverNot, else 0
+		ratio.regular 	= (fertilizer < 3 ) ? ratio.goldNot * ratio.silverNot : 0; //is also regularP
 	}
 	return ratio;
 }
@@ -242,8 +265,9 @@ function profit(crop) {
         useLevel = options.foragingLevel;
 
 	//Fertilizer Quality
-	var {regular, silver, gold, iridium} = levelRatio(fertilizer.ratio, useLevel+options.foodLevel, crop.isWildseed);
-        
+	var {regular, silver, gold, iridium, silverP, goldP} = levelRatio(fertilizer.ratio, useLevel+options.foodLevel, crop.isWildseed);
+	var fertilizerQualityLevel = fertilizer.ratio
+
 	if (isTea) regular = 1, silver = gold = iridium = 0;
 	var netIncome = 0;
 	var maxNetIncome = 0;
@@ -258,6 +282,7 @@ function profit(crop) {
 	
 	var userawproduce = false;
 
+	//Produce Type: 0=Raw, 1=Jar, 2=Keg
 	switch(produce) {
 		case 1: 
 			if(crop.produce.jarType == null) userawproduce = true;
@@ -286,8 +311,7 @@ function profit(crop) {
 	
 	var total_crops = total_harvest * crop.harvests;
 	
-	// console.log("Calculating raw produce value for: " + crop.name);
-	// Determine income
+	// Determine income of Raw Produce
 	if (produce == 0 || userawproduce) {
         if (userawproduce && !options.sellRaw) {
             netIncome = 0;
@@ -309,35 +333,24 @@ function profit(crop) {
 			//Quality is determined at harvest
 			//For crops that produce multiples at harvest, fertilizers affect only the first crop produced
 			for (let i = 0; i < total_crops; i++ ){
-				var randomNumber = Math.random();
-				if (iridium > 0){
-					if(randomNumber < iridium ){
-						//do something
-						countIridium++
-					}
-					else if (randomNumber < gold ){
-						//true gold is picked
-						countGold++
-					} 
-					else {
-						//false silver is the default if iridium is achievable.
-						countSilver++
-					
-					}
-				//fertilizer is below deluxe
-				} else {
-					if (randomNumber < gold ){
-						//true gold is picked
-						countGold++
-					} 
-					else if (randomNumber < silver ){
-						//false silver picked
-						countSilver++
-					
-					} else{
-						//Regular Picked
-						countRegular++
-					}
+				//Note in C# you can easily refresh random with NextDouble(), rather in js I'll reassign each crop.
+				var r2 = Math.random();
+				
+				if (fertilizerQualityLevel >= 3 && r2 < iridium){
+					//iridium
+					countIridium++
+				}
+				else if (r2 < gold){
+					//Gold
+					countGold++
+				}
+				else if (r2 < silver || fertilizerQualityLevel >= 3){
+					//Silver
+					countSilver++
+				}
+				else {
+					//Regular
+					countRegular++
 				}
 			}
 
@@ -352,10 +365,11 @@ function profit(crop) {
 			crop.produce.iridium = countIridium
 			crop.produce.predNetIncome = predNetIncome
 
+			//Apply quality to min/max profit (non predictive) value
 			if (iridium > 0){
 				//min is always silver, max is always iridium
-				netIncome = Math.trunc(crop.produce.price * 1.25) * total_crops;
-				maxNetIncome = crop.produce.price * 2 * total_crops;
+				netIncome += Math.trunc(crop.produce.price * 1.25) * total_crops;
+				maxNetIncome += crop.produce.price * 2 * total_crops;
 			} else {
 				//min is always regular, max is always gold
 				netIncome += crop.produce.price * total_crops;
@@ -454,6 +468,7 @@ function profit(crop) {
 	// Determine total profit
 	totalProfit = netIncome + netExpenses;
 	maxTotalProfit = maxNetIncome + netExpenses;
+	predTotalProfit = predNetIncome + netExpenses;
 	if (netExpenses != 0) {
 		totalReturnOnInvestment = 100 * ((totalProfit) / -netExpenses); // Calculate the return on investment and scale it to a % increase
 
@@ -475,11 +490,14 @@ function profit(crop) {
 	profitData.totalReturnOnInvestment = totalReturnOnInvestment;
 	profitData.averageReturnOnInvestment = averageReturnOnInvestment;
 	profitData.netExpenses = netExpenses;
+	//Isn't taking expenses out
     profitData.profit = totalProfit;
     profitData.maxProfit = maxTotalProfit;
+	profitData.predTotalProfit = predTotalProfit
+
     profitData.regular = regular;
-    profitData.silver = silver;
-    profitData.gold = gold;
+    profitData.silver = silverP;
+    profitData.gold = goldP;
     profitData.iridium = iridium;
 
 	// console.log("Profit: " + profit);
@@ -1068,7 +1086,7 @@ function renderGraph() {
                         initialGrow += Math.floor(d.growth.initial * fertilizer.growth);
 
 					tooltip.append("h3").attr("class", "tooltipTitleExtra").text("Crop info");
-					tooltip.append("h4").attr("class", "tooltipThCenter").text("Predicted Total Sale: " + d.produce.predNetIncome); //COME BACK TO THIS
+					tooltip.append("h4").attr("class", "tooltipThCenter").text("Predicted Total Profit: " + d.profitData.predTotalProfit); //COME BACK TO THIS
 					tooltipTable = tooltip.append("table")
 						.attr("class", "tooltipTable")
 						.attr("cellspacing", 0);
