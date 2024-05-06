@@ -1505,8 +1505,8 @@ function updateData() {
 
 	if (document.getElementById('farming_level').value <= 0)
 		document.getElementById('farming_level').value = 0;
-	if (document.getElementById('farming_level').value > 13)
-		document.getElementById('farming_level').value = 13;
+	if (document.getElementById('farming_level').value > 14)
+		document.getElementById('farming_level').value = 14;
 	options.level = parseInt(document.getElementById('farming_level').value);
 
 	if (options.level >= 5) {
