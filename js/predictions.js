@@ -1,11 +1,4 @@
-/*
- * Calculates the silver of different crop ratings based on fertilizer level and player farming level
- * Math is from https://stardewvalleywiki.com/Farming#Complete_Formula_2
- *
- * @param fertilizer The level of the fertilizer (none:0, basic:1, quality:2, deluxe:3)
- * @param level The total farming skill level of the player
- * @return Object containing silver of iridium, gold, silver, and unrated crops likelihood
- */
+
 
 function Clamp(value, min, max){
 	if (max < min)
@@ -25,24 +18,14 @@ function Clamp(value, min, max){
 	return value;
 }
 
-// function ProbabilityForaging(foragingLevel,botanist){
-// 	let probability = {};
-
-// 	// All wild crops are iridium if botanist is selected
-// 	let forIridiumQuality = (botanist) ? 1 : 0;
-// 	let forGoldQuality = foragingLevel /30.0 * (1-forIridiumQuality);
-// 	let forSilverQuality = foragingLevel / 15.0 * (1- forGoldQuality - forIridiumQuality);
-// 	let forRegularQuality = 1 - forSilverQuality - forGoldQuality - forIridiumQuality;
-
-// 	probability.iridium = forIridiumQuality;
-// 	probability.gold 	= forGoldQuality;
-// 	probability.silver 	= forSilverQuality;
-// 	probability.regular = forRegularQuality;
-
-// 	return probability;
-
-// }
-
+/*
+ * Calculates the chance of crop quality based on foraging level and foraging skill botanist.
+ * Math is from decompiled 1.6 game data
+ *
+ * @param foragingLevel The level of the Players foraging skill (0-15)
+ * @param botanist If botanist skill option is checked (True|False)
+ * @return Object returning predicted crop quality and probability of potential qualities.
+ */
 function PredictForaging(foragingLevel,botanist){
 	let chance = {};
 
@@ -76,6 +59,14 @@ function PredictForaging(foragingLevel,botanist){
 	return chance;
 }
 
+/*
+ * Calculates the chance of crop quality based on farmingLevel level and grade of fertilizer.
+ * Math is from decompiled 1.6 game data
+ *
+ * @param farmingLevel The level of the Players farming skill (0-14)
+ * @param fertilizerQualityLevel Quality of Fertilizer (0:Normal, 1:Silver, 2:Gold, 3:Iridium)
+ * @return Object returning predicted crop quality and part of probability of potential qualities.
+ */
 function Predict(farmingLevel, fertilizerQualityLevel){
   var r2 = Math.random();
   let chance = {};
@@ -128,6 +119,14 @@ function Predict(farmingLevel, fertilizerQualityLevel){
   return chance;
 }
 
+/*
+ * Calculates the chance of crop quality based on farmingLevel level and grade of fertilizer.
+ * Math is from decompiled 1.6 game data
+ *
+ * @param farmingLevel The level of the Players farming skill (0-14)
+ * @param fertilizerQualityLevel Quality of Fertilizer (0:Normal, 1:Silver, 2:Gold, 3:Iridium)
+ * @return Object returning predicted crop quality and part of probability of potential qualities.
+ */
 function Probability( farmingLevel,  fertilizerQualityLevel){
 	const chance = Predict(farmingLevel,fertilizerQualityLevel);
     let probability = {};
