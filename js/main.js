@@ -1544,8 +1544,8 @@ function updateData() {
 
     if (document.getElementById('foraging_level').value <= 0)
         document.getElementById('foraging_level').value = 0;
-    if (document.getElementById('foraging_level').value > 13)
-        document.getElementById('foraging_level').value = 13;
+    if (document.getElementById('foraging_level').value > 14)
+        document.getElementById('foraging_level').value = 14;
     options.foragingLevel = parseInt(document.getElementById('foraging_level').value);
 
     if (options.foragingLevel >= 5) {
