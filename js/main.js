@@ -73,11 +73,11 @@ function formatNumber(num) {
  * @param cropID The ID of the crop to calculate. This corresponds to the crop number of the selected season.
  * @return Number of harvests for the specified crop.
  */
-function harvests(cropID) {
-	var crop = seasons[options.season].crops[cropID];
+function harvests(crop) {
 	var fertilizer = fertilizers[options.fertilizer];
 	// Tea blooms every day for the last 7 days of a season
 	var isTea = crop.name == "Tea Leaves";
+	var result = {}
 
 	// if the crop is NOT cross season, remove 28 extra days for each extra season
 	var remainingDays = options.days - 28;
@@ -96,39 +96,120 @@ function harvests(cropID) {
     else {
         remainingDays = options.days;
     }
+	/*
+		initialPlanted 		= crop.planted;
+		harvests			= logically calculated \\ incremented by one each time a harvest has matured. This also reflects 1 produce was received. This will tell us how many times the player had to harvest for produce
+		extraProduce		= logically calculated \\ if a crop as extra produce, increment extra by # of extra. This is not extra predicted produce!
+		replanted			= logically calculated * Initial Planted \\ Number of times crop was replanted to accommodate x Days. Incremented by one each time a harvest has matured for non-regrowing crops.
+		seedsProduced		= if options.replant true then take away 1 produce and create 2 seeds
+		seedsUsed			= counter
+		produceConverted	= counter
+	*/
 
-	// console.log("=== " + crop.name + " ===");
-
-	var harvests = 0;
-	var day = 1;
+	const initialPlanted = Number(crop.planted);
+	let harvests = 0;
+	let extraProduce = 0;
+	let replanted = 0;
+	let day = 1;
+	let seedsProduced = 0;
+	let seedsUsed = 0;
+	let produceConverted = 0;
 
 	if (options.skills.agri)
 		day += Math.floor(crop.growth.initial * (fertilizer.growth - 0.1));
 	else
 		day += Math.floor(crop.growth.initial * fertilizer.growth);
 
+	//First harvest after maturity
 	if (day <= remainingDays && (!isTea || ((day-1) % 28 + 1) > 21))
-		harvests++;
+		harvests = harvests + initialPlanted;
+		if(crop.produce.extra > 0){
+			extraProduce = crop.produce.extra * initialPlanted;
+		}
+		//ADD PREDICTION OF EXTRAPERC HERE
 
 	while (day <= remainingDays) {
 		if (crop.growth.regrow > 0) {
-			// console.log("Harvest on day: " + day);
 			day += crop.growth.regrow;
 		}
 		else {
-			// console.log("Harvest on day: " + day);
 			if (options.skills.agri)
 				day += Math.floor(crop.growth.initial * (fertilizer.growth - 0.1));
 			else
 				day += Math.floor(crop.growth.initial * fertilizer.growth);
 		}
 
+		//Next harvest, replanted for non regrowing crops
 		if (day <= remainingDays && (!isTea || ((day-1) % 28 + 1) > 21))
-			harvests++;
+			if (crop.growth.regrow > 0){
+				harvests = harvests + initialPlanted;
+				if(crop.produce.extra > 0){
+					extraProduce = extraProduce + (crop.produce.extra * initialPlanted);
+				}
+				//ADD PREDICTION OF EXTRAPERC HERE
+			} else {
+				harvests = harvests + initialPlanted;
+				replanted = replanted + initialPlanted;
+				if(crop.produce.extra > 0){
+					extraProduce = extraProduce + (crop.produce.extra * initialPlanted);
+				}
+
+				//if we initially started with more than 1 planted seed then this needs to be modified so we don't have too many seeds remaining at the end of the cycle
+				for(i=initialPlanted;i>0;i--){
+					if(options.replant){
+						//I have seeds to use
+						if(seedsProduced > 0){
+							seedsUsed++;
+							seedsProduced--;
+						//I need to make seeds and use one
+						} else {
+							//Use 1 produce to make 2 seeds
+							seedsProduced += 2;
+							produceConverted++;
+
+							//Plant one seed
+							seedsUsed++;
+							seedsProduced--;
+						}
+					}
+					//ADD PREDICTION OF EXTRAPERC HERE
+				}
+			}
 	}
 
-	// console.log("Harvests: " + harvests);
-	return harvests;
+	/*
+		initialPlanted 		= crop.planted;
+		harvests			= logically calculated // incremented by one each time a harvest has matured. This also reflects 1 produce was received. This will tell us how many times the player had to harvest for produce
+		extraProduce		= logically calculated // if a crop as extra produce, increment extra by # of extra. This is not extra predicted produce!
+		replanted			= logically calculated // Number of times crop was replanted to accommodate x Days. Incremented by one each time a harvest has matured for non-regrowing crops.
+		seedsProduced		= if options.replant true then take away 1 produce and create 2 seeds
+		seedsUsed			= counter
+		produceConverted	= counter
+
+		result.replanted			= replanted * Initial Planted // Number of times crop was replanted times initial number planted
+		result.totalPlanted			= initialPlanted + replanted // Total Number of times crop was planted for non-regrowing crops.
+		result.totalProduced		= harvests * extraProduce // total of crops produced in xDays. If a crop generates more than 1 produce, fetch from crop.produce.extra
+		result.totalHarvests		= harvests // for better clarity renaming to totalHarvests.
+		result.producePerHarvest	= ( ( totalProduced / harvests) / initialPlanted ) // number of crops produced from each harvest from a single crop. This should always be 1, except for crops then generate more, like coffee beans.
+
+		result.seedsProduced	= seedsProduced;
+		result.seedsUsed		= seedsUsed;
+		result.produceConverted = produceConverted;
+		// Need to include predicted crop chance
+	*/
+
+	result.seedsProduced	= seedsProduced;
+	result.seedsUsed		= seedsUsed;
+	result.produceConverted = produceConverted;
+
+	result.replanted		= replanted;
+	result.totalPlanted		= initialPlanted + result.replanted; //UNSURE
+	result.totalProduceSold	= (harvests + extraProduce) - result.produceConverted;
+	result.totalProduced	= harvests + extraProduce;
+	result.totalHarvests	= harvests / initialPlanted;
+	result.producePerHarvest = result.totalProduced / harvests;
+
+	return result;
 }
 
 /*
@@ -193,8 +274,12 @@ function getCaskModifier() {
  * @return The total profit.
  */
 function profit(crop) {
+	//Update verbiage for better clarity
+	// We need to know if user chose to process and replant then profit will be on what was sold, removing crop transformed into seeds
+
 	var num_planted = planted(crop);
-	//var total_harvests = crop.harvests * num_planted;
+    var total_harvest = num_planted;
+	var total_crops = crop.harvests;
 	var fertilizer = fertilizers[options.fertilizer];
 	var produce = options.produce;
 	var isTea = crop.name == "Tea Leaves";
@@ -228,8 +313,6 @@ function profit(crop) {
 			break;
 	}
 	
-	//Check This
-    var total_harvest = num_planted * 1.0 + num_planted * crop.produce.extraPerc * crop.produce.extra;
 	var forSeeds = 0;
 	if (options.replant && !isTea) {
 		if (isCoffee && options.nextyear) {
@@ -245,7 +328,6 @@ function profit(crop) {
 		}
 	}
 	
-	var total_crops = total_harvest * crop.harvests;
 	
 	// Determine income of Raw Produce
 	if (produce == 0 || userawproduce) {
@@ -268,6 +350,14 @@ function profit(crop) {
 			
 			//Quality is determined at harvest
 			//For crops that produce multiples at harvest, fertilizers affect only the first crop produced
+
+			//THIS IS WHERE WE NEED TO SETUP EXTRA CROPS PROBABILITY
+
+			if(crop.produce.extra > 0){
+				//take away extra crops toward quality prediction
+
+			}
+
 			for (let i = 0; i < total_crops; i++ ){
 				const predicted = (crop.isWildseed) ? PredictForaging(options.foragingLevel,options.skills.botanist) : Predict(useLevel+options.foodLevel,fertilizer.ratio);
 				
@@ -438,14 +528,21 @@ function profit(crop) {
  * @return The total loss.
  */
 function seedLoss(crop) {
-	var harvests = crop.harvests;
+	const planted = Number(crop.totalPlanted);
+	let seeds = planted;
+	//if replanted > 0 then if replanted is greater than 0 then 'number of seeds = planted' + replanted else 'number of seeds = planted'
+	// let seeds = (options.replant) ? planted : ( replanted > 0) ? planted + replanted : planted;
 
-    var loss = -minSeedCost(crop);
+	//repurpose seeds
+	if(options.replant){
+		//how many produce were lost to convert to seeds
+		let seedsUsed = Number(crop.seedsUsed);
+		seeds = planted - seedsUsed;
+	}
 
-	if (crop.growth.regrow == 0 && harvests > 0 && !options.replant)
-		loss = loss * harvests;
-
-	return loss * planted(crop);
+    let loss = -minSeedCost(crop);
+	loss = loss * seeds;
+	return loss;
 }
 
 /*
@@ -459,11 +556,12 @@ function seedLoss(crop) {
  */
 function fertLoss(crop) {
 	var loss;
+	//If Deluxe && Sourve (seller) is Sandy
 	if(options.fertilizer == 4 && options.fertilizerSource == 1)
 		loss = -fertilizers[options.fertilizer].alternate_cost;
 	else
 		loss = -fertilizers[options.fertilizer].cost;
-	return loss * planted(crop);
+	return loss * Number(crop.totalPlanted);
 }
 
 /*
@@ -519,7 +617,30 @@ function valueCrops() {
             cropList[i].produce.extraPerc += 0.2;
         }
 		cropList[i].planted = planted(cropList[i]);
-		cropList[i].harvests = harvests(cropList[i].id);
+		var harvestsResults = harvests(cropList[i]);
+		cropList[i].replanted 		= harvestsResults.replanted;
+		cropList[i].totalPlanted 	= harvestsResults.totalPlanted;
+		cropList[i].totalProduced 	= harvestsResults.totalProduced;
+		cropList[i].totalProduceSold 	= harvestsResults.totalProduceSold;
+		cropList[i].totalHarvests 	= harvestsResults.totalHarvests;
+		cropList[i].harvests 		= harvestsResults.totalProduceSold;//...i hate this where are you being called?
+		cropList[i].seedsProduced 	= harvestsResults.seedsProduced;
+		cropList[i].seedsUsed 		= harvestsResults.seedsUsed;
+		cropList[i].produceConverted 	= harvestsResults.produceConverted;
+
+	/* Available from harvestsResults
+		result.replanted			= replanted * Initial Planted // Number of times crop was replanted times initial number planted
+		result.totalPlanted			= initialPlanted + replanted // Total Number of times crop was planted for non-regrowing crops.
+		result.totalProduced		= harvests * extraProduce // total of crops produced in xDays. If a crop generates more than 1 produce, fetch from crop.produce.extra
+		result.totalHarvests		= harvests // for better clarity renaming to totalHarvests.
+		result.producePerHarvest	= ( ( totalProduced / harvests) / initialPlanted ) // number of crops produced from each harvest from a single crop. This should always be 1, except for crops then generate more, like coffee beans.
+		
+		result.seedsProduced	= seedsProduced;
+		result.seedsUsed		= seedsUsed;
+		result.produceConverted = produceConverted;
+		// Need to include predicted crop chance
+	*/
+		
 		cropList[i].seedLoss = seedLoss(cropList[i]);
 		cropList[i].fertLoss = fertLoss(cropList[i]);
 		cropList[i].profitData = profit(cropList[i]);
@@ -853,7 +974,7 @@ function renderGraph() {
 			.on("mouseover", function(d) {
 				tooltip.selectAll("*").remove();
 				tooltip.style("visibility", "visible");
-
+				link = 
 				tooltip.append("h2").attr("class", "tooltipTitle").text(d.name);
 				var sortText ="";
 				switch (options.average) {
@@ -994,9 +1115,53 @@ function renderGraph() {
 				tooltipTr = tooltipTable.append("tr");
 				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Planted:");
 				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.planted);
+				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Replanted:");
+				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.replanted);
 				tooltipTr = tooltipTable.append("tr");
 				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Harvests:");
-				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.harvests);
+				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.totalHarvests);
+				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Total Produced:");
+				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.totalProduced);
+
+				
+				tooltipTr = tooltipTable.append("tr");
+				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Seeds Used:");
+				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.seedsUsed);
+				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Seeds Produced:");
+				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.seedsProduced);
+
+				
+				tooltipTr = tooltipTable.append("tr");
+				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Produce Converted to seed:");
+				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.produceConverted);
+				tooltipTr.append("td").attr("class", "tooltipTdLeft").text("Produce Sold");
+				tooltipTr.append("td").attr("class", "tooltipTdRight").text(d.totalProduceSold);
+				// //HERE I AM
+				/*
+					initialPlanted 		= crop.planted;
+					harvests			= logically calculated // incremented by one each time a harvest has matured. This also reflects 1 produce was received. This will tell us how many times the player had to harvest for produce
+					extraProduce		= logically calculated // if a crop as extra produce, increment extra by # of extra. This is not extra predicted produce!
+					replanted			= logically calculated // Number of times crop was replanted to accommodate x Days. Incremented by one each time a harvest has matured for non-regrowing crops.
+					
+					result.replanted			= replanted * Initial Planted // Number of times crop was replanted times initial number planted
+					result.totalPlanted			= initialPlanted + replanted // Total Number of times crop was planted for non-regrowing crops.
+					result.totalProduced		= harvests * extraProduce // total of crops produced in xDays. If a crop generates more than 1 produce, fetch from crop.produce.extra
+					result.totalHarvests		= harvests // for better clarity renaming to totalHarvests.
+					result.producePerHarvest	= ( ( totalProduced / harvests) / initialPlanted ) // number of crops produced from each harvest from a single crop. This should always be 1, except for crops then generate more, like coffee beans.
+					
+					
+					result.seedsProduced	= seedsProduced;
+					result.seedsUsed		= seedsUsed;
+					result.produceConverted = produceConverted;
+
+					result.replanted		= replanted;
+					result.totalPlanted		= initialPlanted + result.replanted; //UNSURE
+					result.totalProduceSold	= (harvests + extraProduce) - result.produceConverted;
+					result.totalProduced	= harvests + extraProduce;
+					result.totalHarvests	= harvests;
+					result.producePerHarvest = result.totalProduced / harvests;
+									// Need to include predicted crop chance
+				*/
 
 				if (options.extra) {
                     var fertilizer = fertilizers[options.fertilizer];
@@ -1130,9 +1295,9 @@ function renderGraph() {
 			.on("mousemove", function() {
 				tooltip.style("top", (d3.event.pageY - 16) + "px").style("left",(d3.event.pageX + 20) + "px");
 			})
-			.on("mouseout", function() { tooltip.style("visibility", "hidden"); })
-			.on("click", function(d) { window.open(d.url, "_blank"); });
-
+			.on("mouseout", function() { tooltip.style("visibility", "hidden"); });
+			//TURN THIS BACK ON WHEN DONE TESTING
+			// .on("click", function(d) { window.open(d.url, "_blank"); });
 
 }
 
@@ -1418,8 +1583,8 @@ function updateData() {
     if (document.getElementById('number_planted').value <= 0)
         document.getElementById('number_planted').value = 1;
 	//Better to explain in UI that this will update the number of crops to an even number!
-    if (options.replant && parseInt(document.getElementById('number_planted').value) % 2 == 1)
-        document.getElementById('number_planted').value = parseInt(document.getElementById('number_planted').value) + 1;
+    // if (options.replant && parseInt(document.getElementById('number_planted').value) % 2 == 1)
+    //     document.getElementById('number_planted').value = parseInt(document.getElementById('number_planted').value) + 1;
     options.planted = document.getElementById('number_planted').value;
 
 	options.fertilizer = parseInt(document.getElementById('select_fertilizer').value);
