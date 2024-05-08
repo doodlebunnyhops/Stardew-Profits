@@ -18,6 +18,24 @@ function Clamp(value, min, max){
 	return value;
 }
 
+function PredictExtraHarvest(crop){
+	const r2 = Math.random();
+	let chance = {};
+
+	/*actual game code v1.6.3
+	Random r2 = Utility.CreateRandom((double)xTile * 7.0, (double)yTile * 11.0, Game1.stats.DaysPlayed, Game1.uniqueIDForThisGame);
+	while (r2.NextDouble() < Math.Min(0.9, data.ExtraHarvestChance)){
+		numToHarvest++;
+	}
+	*/
+
+	//modified, we're just going to roll the dice once.
+	extraHarvest = (r2 < Math.min(0.9,Number(crop.extraPerc))) ? true : false;
+
+	// chance.harvest = extraHarvest;
+	return extraHarvest;
+}
+
 /*
  * Calculates the chance of crop quality based on foraging level and foraging skill botanist.
  * Math is from decompiled 1.6 game data
