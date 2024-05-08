@@ -14,6 +14,7 @@
 		<div class="title">
 		</div>
 
+		<script src="js/predictions.js"> </script>
 		<script src="js/crops.js"> </script>
 		<script src="js/data.js"> </script>
 		<div class="graph">
@@ -131,7 +132,7 @@
 
             <tr>
                 <td>Process & Replant:</td>
-                <td><input type="checkbox" id="check_replant" onChange="refresh()" /> <label for="check_replant">(Forces even crops)</label></td>
+                <td><input type="checkbox" id="check_replant" onChange="refresh()" /> <label for="check_replant"></label></td>
             </tr>
 
             <tr>
@@ -241,6 +242,11 @@
 			<tr>
 				<td>Show Extra Info:</td>
 				<td><input type="checkbox" id="check_extra" onChange="refresh()" checked="true" /></td>
+			</tr>
+			
+			<tr>
+				<td>Disable Crop Links:</td>
+				<td><input type="checkbox" id="disable_links" onChange="refresh()" checked="false" /></td>
 			</tr>
 
 			<tr>
