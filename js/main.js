@@ -16,6 +16,9 @@ var barOffsetY = 40;
 var graphDescription = "Profit";
 
 // Prepare web elements.
+/**
+ * @default
+ */
 var svg = d3.select("div.graph")
 	.append("svg")
 	.attr("width", svgWidth)
@@ -23,6 +26,9 @@ var svg = d3.select("div.graph")
 	.style("background-color", "#333333")
 	.style("border-radius", "8px");
 
+/**
+ * @default
+ */
 var tooltip = d3.select("body")
 	.append("div")
 	.style("position", "absolute")
@@ -51,11 +57,11 @@ var barsTooltips;
 var options;
 var MAX_INT = Number.MAX_SAFE_INTEGER || Number.MAX_VALUE;
 
-/*
+/**
  * Formats a specified number, adding separators for thousands.
  * @param num The number to format.
  * @return Formatted string.
- */
+ **/
 function formatNumber(num) {
     num = num.toFixed(2) + '';
     x = num.split('.');
@@ -68,11 +74,11 @@ function formatNumber(num) {
     return x1 + x2;
 }
 
-/*
+/**
  * Calculates the maximum number of harvests for a crop, specified days, season, etc.
  * @param cropID The ID of the crop to calculate. This corresponds to the crop number of the selected season.
  * @return Number of harvests for the specified crop.
- */
+ **/
 function harvests(cropID) {
 	var crop = seasons[options.season].crops[cropID];
 	var fertilizer = fertilizers[options.fertilizer];
@@ -131,11 +137,11 @@ function harvests(cropID) {
 	return harvests;
 }
 
-/*
+/**
  * Calculates the minimum cost of a single packet of seeds.
  * @param crop The crop object, containing all the crop data.
  * @return The minimum cost of a packet of seeds, taking options into account.
- */
+ **/
 function minSeedCost(crop) {
 	var minSeedCost = Infinity;
 
@@ -151,11 +157,11 @@ function minSeedCost(crop) {
 	return minSeedCost;
 }
 
-/*
+/**
  * Calculates the number of crops planted.
  * @param crop The crop object, containing all the crop data.
  * @return The number of crops planted, taking the desired number planted and the max seed money into account.
- */
+ **/
 function planted(crop) {
 	if (options.buySeed && options.maxSeedMoney !== 0) {
 		return Math.min(options.planted, Math.floor(options.maxSeedMoney / minSeedCost(crop)));
@@ -164,14 +170,14 @@ function planted(crop) {
 	}
 }
 
-/*
+/**
  * Calculates the ratios of different crop ratings based on fertilizer level and player farming level
  * Math is from Crop.harvest(...) game logic
  *
  * @param fertilizer The level of the fertilizer (none:0, basic:1, quality:2, deluxe:3)
  * @param level The total farming skill level of the player
  * @return Object containing ratios of iridium, gold, silver, and unrated crops liklihood
- */
+ **/
 function levelRatio(fertilizer, level, isWildseed) {
 	var ratio = {};
 
@@ -202,20 +208,20 @@ function levelRatio(fertilizer, level, isWildseed) {
 	return ratio;
 }
 
-/*
+/**
  * Calculates the keg modifier for the crop.
  * @param crop The crop object, containing all the crop data.
  * @return The keg modifier.
- */
+ **/
 function getKegModifier(crop) {
     return crop.produce.kegType == "Wine" ? 3 : 2.25;
 }
 
-/*
+/**
  * Calculates the cask modifier for the crop.
  * @param crop The crop object, containing all the crop data.
  * @return The cask modifier.
- */
+ **/
 function getCaskModifier() {
     switch (options.aging) {
         case 1: return 1.25;
@@ -225,11 +231,12 @@ function getCaskModifier() {
     }
 }
 
-/*
+/** 
  * Calculates the profit for a specified crop.
- * @param crop The crop object, containing all the crop data.
- * @return The total profit.
- */
+ * @constructor
+ * @param {object} crop - The crop object, containing all the crop data.
+ * @return {object} profitData - The total profit.
+ **/
 function profit(crop) {
 	var num_planted = planted(crop);
 	//var total_harvests = crop.harvests * num_planted;
@@ -414,11 +421,11 @@ function profit(crop) {
 	return profitData;
 }
 
-/*
+/**
  * Calculates the loss to profit when seeds are bought.
  * @param crop The crop object, containing all the crop data.
  * @return The total loss.
- */
+ **/
 function seedLoss(crop) {
 	var harvests = crop.harvests;
 
@@ -430,7 +437,7 @@ function seedLoss(crop) {
 	return loss * planted(crop);
 }
 
-/*
+/**
  * Calculates the loss to profit when fertilizer is bought.
  *
  * Note that harvesting does not destroy fertilizer, so this is
@@ -438,7 +445,7 @@ function seedLoss(crop) {
  *
  * @param crop The crop object, containing all the crop data.
  * @return The total loss.
- */
+ **/
 function fertLoss(crop) {
 	var loss;
 	if(options.fertilizer == 4 && options.fertilizerSource == 1)
@@ -448,18 +455,18 @@ function fertLoss(crop) {
 	return loss * planted(crop);
 }
 
-/*
+/**
  * Converts any value to the average per day value.
  * @param value The value to convert.
  * @return Value per day.
- */
+ **/
 function perDay(value) {
 	return value / options.days;
 }
 
-/*
+/**
  * Performs filtering on a season's crop list, saving the new list to the cropList array.
- */
+ **/
 function fetchCrops() {
 	cropList = [];
 
@@ -475,9 +482,9 @@ function fetchCrops() {
 	}
 }
 
-/*
+/**
  * Calculates all profits and losses for all crops in the cropList array.
- */
+ **/
 function valueCrops() {
 	for (var i = 0; i < cropList.length; i++) {
         if (cropList[i].isWildseed && options.skills.gatherer) {
@@ -536,9 +543,9 @@ function valueCrops() {
 	}
 }
 
-/*
+/**
  * Sorts the cropList array, so that the most profitable crop is the first one.
- */
+ **/
 function sortCrops() {
 	var swapped;
     do {
@@ -560,20 +567,20 @@ function sortCrops() {
 	}
 }
 
-/*
+/**
  * Updates the X D3 scale.
  * @return The new scale.
- */
+ **/
 function updateScaleX() {
 	return d3.scale.ordinal()
 		.domain(d3.range(seasons[4].crops.length))
 		.rangeRoundBands([0, width]);
 }
 
-/*
+/**
  * Updates the Y D3 scale.
  * @return The new scale.
- */
+ **/
 function updateScaleY() {
 	return d3.scale.linear()
 		.domain([0, d3.max(cropList, function(d) {
@@ -596,10 +603,10 @@ function updateScaleY() {
 		.range([height, 0]);
 }
 
-/*
+/**
  * Updates the axis D3 scale.
  * @return The new scale.
- */
+ **/
 function updateScaleAxis() {
 	return d3.scale.linear()
 		.domain([
@@ -640,10 +647,10 @@ function updateScaleAxis() {
 		.range([height*2, 0]);
 }
 
-/*
+/**
  * Renders the graph.
  * This is called only when opening for the first time or when changing seasons/seeds.
- */
+ **/
 function renderGraph() {
 
 	var x = updateScaleX();
@@ -1054,9 +1061,9 @@ function renderGraph() {
 
 }
 
-/*
+/**
  * Updates the already rendered graph, showing animations.
- */
+ **/
 function updateGraph() {
 	var x = updateScaleX();
 	var y = updateScaleY();
@@ -1223,10 +1230,10 @@ function updateSeasonNames() {
     }
 }
 
-/*
+/**
  * Updates all options and data, based on the options set in the HTML.
  * After that, filters, values and sorts all the crops again.
- */
+ **/
 function updateData() {
 
     options.season = parseInt(document.getElementById('select_season').value);
@@ -1431,27 +1438,27 @@ function updateData() {
 	sortCrops();
 }
 
-/*
+/**
  * Called once on startup to draw the UI.
- */
+ **/
 function initial() {
 	optionsLoad();
 	updateData();
 	renderGraph();
 }
 
-/*
+/**
  * Called on every option change to animate the graph.
- */
+ **/
 function refresh() {
 	updateData();
 	gTitle.selectAll("*").remove();
 	updateGraph();
 }
 
-/*
+/**
  * Parse out and validate the options from the URL hash.
- */
+ **/
 function optionsLoad() {
 	if (!window.location.hash) return;
 
@@ -1599,9 +1606,9 @@ function serialize(obj) {
 		.slice(1);
 }
 
-/*
+/**
  * Called when changing season/seeds, to redraw the graph.
- */
+ **/
 function rebuild() {
 	gAxis.selectAll("*").remove();
 	gProfit.selectAll("*").remove();

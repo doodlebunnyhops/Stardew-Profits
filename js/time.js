@@ -15,11 +15,11 @@ function styleByTime() {
 	if (temp != current) {
 		// console.log("Switching time to " + temp + "!");
 		if (temp == "day") {
-			d3.select("body").style("background-image", "url(\"img/bg_day.png\")");
+			d3.select("body").style("background-image", "url(\"/img/bg_day.png\")");
 			current = "day";
 		}
 		else if (temp == "night") {
-			d3.select("body").style("background-image", "url(\"img/bg_night.png\")");
+			d3.select("body").style("background-image", "url(\"/img/bg_night.png\")");
 			current = "night";
 		}
 	}

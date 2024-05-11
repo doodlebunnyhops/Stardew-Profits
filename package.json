@@ -1,0 +1,29 @@
+{
+  "name": "stardew-profits",
+  "version": "1.6.8",
+  "description": "Stardewvalley Profit Calculator",
+  "main": "index.html",
+  "scripts": {
+    "test": "jekyll serve",
+    "generate-docs": "jsdoc --configure .jsdoc.json --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thorinair/Stardew-Profits.git"
+  },
+  "keywords": [
+    "stardewvalley"
+  ],
+  "author": "Thorinair",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Thorinair/Stardew-Profits/issues"
+  },
+  "homepage": "https://github.com/Thorinair/Stardew-Profits#readme",
+  "devDependencies": {
+    "minami": "^1.2.3"
+  },
+  "dependencies": {
+    "docdash": "^2.0.2"
+  }
+}

@@ -1,4 +1,7 @@
 // Options used to draw the graph.
+/**
+ * @default
+ */
 var options = {
 	"produce": 0,
     "equipment": 0,
@@ -36,6 +39,9 @@ var options = {
 };
 
 // Different fertilizers with their stats.
+/**
+ * @default
+ */
 var fertilizers = [
 	{
 		"name": "None",
@@ -83,6 +89,9 @@ var fertilizers = [
 ];
 
 // Different seasons with predefined crops.
+/**
+ * @default
+ */
 var seasons = [
 	{
 		"name": "Spring",

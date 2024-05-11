@@ -3,6 +3,34 @@
  */
 
 // Crop List
+/**
+ * @namespace crop
+ * @property {string}  crop.name               - Name of crop.
+ * @property {string}  crop.url                - URL to Official wiki.
+ * @property {string}  crop.img                - Path to Image File.
+ * @property {boolean}  crop.isWildseed        - Does this crop come from a wildSeed.
+ * @property {object}  crop.seeds              - Object of seed.
+ * @property {number}  crop.seeds.sell         - How much a seed sells for.
+ * @property {number}  crop.seeds.pierre       - How much a seed is sold for at Pierre's.
+ * @property {number}  crop.seeds.joja         - How much a seed is sold for at JojaMart.
+ * @property {number}  crop.seeds.special      - How much a seed is sold for at Other locations.
+ * @property {string}  crop.seeds.specialLoc   - Other location seed is sold at
+ * @property {string}  crop.seeds.specialUrl   - URL to Wiki about location that sells seed.
+ * @property {object}  crop.growth             - Object of Growth.
+ * @property {number}  crop.growth.inital      - How many days it takes for crop to mature.
+ * @property {number}  crop.growth.regrow      - How many days it takes for crop to regrow after maturity.
+ * @property {object}  crop.produce            - Object of Produce.
+ * @property {number}  crop.produce.extra      - How many more crops are produced normally.
+ * @property {number}  crop.produce.extraPerc  - What is the chance that more crops will be produced.
+ * @property {number}  crop.produce.price      - How much a single crop is sold for, this is the minium price.
+ * @property {string}  crop.produce.jarType    - What type of product is produced from the jar.
+ * @property {string}  crop.produce.kegType    - What type of product is produced from the keg.
+ */
+
+// https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#type-expressions
+// https://jsdoc.app/
+// https://github.com/jsdoc/jsdoc
+
 var crops = {
   "carrot": {
     "name": "Carrot",
